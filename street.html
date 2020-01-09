@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Google Maps Marker Plot Algo</title>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" style="width: 45%; height: 100%;float:left"></div>
+    <div id="pano" style="width: 45%; height: 100%;float:left"></div>
+    <div id="btn" style="width: 10%; height: 100%;float:left">
+    </div>
+
+    <script>
+        /*
+         * Click the map to set a new location for the Street View camera.
+         */
+
+        var map;
+        var panorama;
+        var markers = [];
+        var markerlength;
+        var locate;
+        var svg;
+        var globalMarker = [];
+        var polylineMarker = [];
+        var elseMarker = [];
+        var elsepolyline = [];
+        var points;
+        var colorLineArray = [];
+        var clearColorPolylinePath = [];
+        var lengthMarker;
+        var polylineLengthMarker;
+        var previousValue;
+        var sv;
+
+        function initMap() {
+            GeoLocation();
+            var berkeley = { lat: 37.869085, lng: -122.254775 };
+            sv = new google.maps.StreetViewService();
+            svg = new google.maps.StreetViewService();
+
+            panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'));
+
+            // Set up the map.
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: locate,
+                // center: berkeley,
+                zoom: 16,
+                streetViewControl: false,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+                    mapTypeIds: ['roadmap', 'terrain', 'hybrid', 'satellite']
+                }
+            });
+
+            // Set the initial Street View camera to the center of the map
+            // sv.getPanorama({location: berkeley, radius: 50}, processSVData);
+
+            // Look for a nearby Street View panorama when the map is clicked.
+            // getPanorama will return the nearest pano when the given
+            // radius is 50 meters or less.
+
+            map.addListener('click', function (event) {
+                lat = event.latLng.lat();
+                lng = event.latLng.lng();
+                points = { lat: lat, lng: lng };
+                // markers.push({ lat: lat, lng: lng });
+                // markerlength = (markers.length - 1) || 0;
+                sv.getPanorama({ location: event.latLng, radius: 50 }, processSVData);
+            });
+        }
+        function GeoLocation() {
+            infoWindow = new google.maps.InfoWindow;
+            console.log(map);
+
+            // Try HTML5 geolocation.
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    // locations.push({ lat: pos.lat, lng: pos.lng })
+                    locate = { lat: pos.lat, lng: pos.lng };
+
+                    infoWindow.setPosition(pos);
+                    //  infoWindow.setContent('Location found.');
+                    // infoWindow.open(map);
+                    map.setCenter(pos);
+                }, function () {
+                    handleLocationError(true, infoWindow, map.getCenter());
+                });
+            } else {
+                // Browser doesn't support Geolocation
+                handleLocationError(false, infoWindow, map.getCenter());
+            }
+        }
+
+        function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+            infoWindow.setPosition(pos);
+            infoWindow.setContent(browserHasGeolocation ?
+                'Error: The Geolocation service failed.' :
+                'Error: Your browser doesn\'t support geolocation.');
+            infoWindow.open(map);
+        }
+        /**********Marker and Polyline*********/
+        function processSVData(data, status, arr) {
+            //   console.log('arr', arr);
+            //  console.log(data, status);
+            var locationpoint;
+            if (arr == undefined) {
+                if (data == null) {
+                    locationpoint = points;
+                    markers.push({ lat: points.lat, lng: points.lng });
+                    markerlength = (markers.length - 1) || 0;
+
+
+                } else {
+                    locationpoint = data.location.latLng;
+                    markers.push({ lat: data.location.latLng.lat(), lng: data.location.latLng.lng() });
+                    markerlength = (markers.length - 1) || 0;
+                    // console.log(data.location.latLng.lat());
+                }
+
+
+                var marker = new google.maps.Marker({
+                    position: locationpoint,
+                    map: map,
+                    label: `${markerlength}`,
+                    map: map,
+                    title: `${markerlength}`,
+                    draggable: true,
+                    animation: google.maps.Animation.DROP,
+                    symbolPath: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+                });
+                var circle = new google.maps.Circle({
+                    center: locationpoint,
+                    map: map,
+                    radius: 1,          // IN METERS.
+                    // fillColor: '#FF6600',
+                    // fillOpacity: 0.3,
+                    strokeColor: "#FFF",
+                    strokeWeight: 0,
+                    editable: true      // DON'T SHOW CIRCLE BORDER.
+                });
+                globalMarker.push(marker);
+                arrayPair(markers);
+
+
+                if (data == null) {
+
+
+                } else {
+                     sv.getPanorama({ location: event.latLng, radius: 50 }, );
+                    console.log('pano', data.location, data.location.pano);
+                    panorama.setPano(data.location.pano);
+
+                    panorama.setPov({
+                        heading: 270,
+                        pitch: 0
+                    });
+                    panorama.setVisible(true);
+
+                }
+                marker.addListener('click', function (e) {
+                    console.log('calling from marker');
+
+                    // if (data == null) {
+                    // } else {
+                    sv.getPanorama({ location: { lat: 28.4610156, lng: 77.0972644 }, radius: 50 }, function response(res, data) {
+                        console.log('res', res)
+                        var markerPanoID = "CAoSLEFGMVFpcE9NT2NmRWZGM1JueTJBTVNvei1kWXZmY0JHa2FBcjU1UXRhWi1k";
+                        // Set the Pano to use the passed panoID.
+                        panorama.setPano(markerPanoID);
+                        panorama.setPov({
+                            heading: 270,
+                            pitch: 0
+                        });
+                        panorama.setVisible(true);
+
+                    });
+
+
+                    // }
+
+                });
+                marker.addListener('dblclick', function (e) {
+                    //    console.log('dbclick');
+                    //  makeConnection();
+                    //  console.log('e', e);
+                    //  console.log('event ', lat = e.latLng.lat(),
+
+
+                })
+
+                // center_changed()
+                circle.addListener('center_changed', function (e) {
+                    console.log('center', e);
+                })
+                marker.addListener('dragend', function (e) {
+                    // flightPath.setMap(null);
+                    lat = e.latLng.lat();
+                    lng = e.latLng.lng();
+                    previousValue = markers[marker.getTitle()];
+                    newvalue = { lat: lat, lng: lng };
+                    //  console.log('new and previous', previousValue, newvalue);
+                    // previousValueFunction();
+                    markers[marker.getTitle()] = { lat: lat, lng: lng };
+                    //console.log(marker.getTitle());
+                    // console.log('dragmarker', markers);
+                    lengthMarker = markers.length;
+
+                    if (removeMarker() == true && removePolyline() == true && previousValueFunction() == true) {
+                        processSVData(null, null, 'call');
+                        arrayPair();
+
+
+                    }
+                });
+            } else {
+                //  console.log('call');
+                //  console.log('calling from else');
+                // var marker;
+                clickMarker = [];
+                for (var i = 0; i < markers.length; i++) {
+                    var marker = new google.maps.Marker({
+                        position: markers[i],
+                        map: map,
+                        label: `${i}`,
+                        map: map,
+                        title: `${i}`,
+                        draggable: true,
+                        animation: google.maps.Animation.DROP,
+                    });
+                    clickMarker.push(marker);
+
+
+                    elseMarker.push(marker);
+                }
+                clickMarker.forEach(function (element, index) {
+                    element.addListener('click', function (e) {
+
+                        if (data == null) {
+
+
+                        } else {
+                            var markerPanoID = data.location.pano;
+                            // Set the Pano to use the passed panoID.
+                            panorama.setPano(markerPanoID);
+                            panorama.setPov({
+                                heading: 270,
+                                pitch: 0
+                            });
+                            panorama.setVisible(true);
+                        }
+                    });
+                    element.addListener('dblclick', function (e) {
+                        //    console.log('index', index);
+                        //   console.log('dbclick');
+                        //  console.log('e', e);
+                        //  console.log('event ', lat = e.latLng.lat(),
+                        //    lng = e.latLng.lng());
+
+
+                    })
+                    element.addListener('dragend', function (e) {
+                        // console.log('marker calling');
+                        // console.log('index', index);
+                        // console.log(marker.getTitle());
+                        lat = e.latLng.lat();
+                        lng = e.latLng.lng();
+                        previousValue = markers[marker.getTitle()];
+                        newvalue = { lat: lat, lng: lng };
+                        //  //   previousValueFunction();
+                        //     console.log('new and previous', previousValue, newvalue);
+                        markers[index] = { lat: lat, lng: lng };
+                        lengthMarker = markers.length;
+                        // // console.log(marker.getTitle());
+                        // console.log('dragmarker', markers);
+                        if (removeElseMarker() == true && removeMarker() == true && removePolyline() == true && previousValueFunction() == true) {
+                            processSVData(null, null, 'call');
+                            arrayPair();
+                        }
+                    });
+
+
+                });
+
+
+            }
+
+
+            // console.log('marker', markers);
+
+
+        }
+        function previousValueFunction(ind, element, operation) {
+            // console.log('value matched');
+            if (operation == 'push') {
+                if (colorLineArray.length > 0) {
+                    for (var i = 0; i < colorLineArray.length; i++) {
+                        if (colorLineArray[i].index == ind) {
+                            if ((colorLineArray[i].latlng[0].lat == element[0].lat && colorLineArray[i].latlng[0].lng == element[0].lng) || (colorLineArray[i].latlng[1].lat == element[1].lat && colorLineArray[i].latlng[1].lng == element[1].lng)) {
+                                colorLineArray[i].index = ind;
+                                colorLineArray[i].latlng = element;
+                            }
+                        }
+                    }
+                    if (operation == 'push') {
+                        colorLineArray.push({
+                            "latlng": element,
+                            "index": ind
+
+                        });
+
+                    }
+
+
+                } else {
+                    colorLineArray.push({
+                        "latlng": element,
+                        "index": ind
+
+                    });
+
+
+                }
+            } else {
+                for (var i = 0; i < colorLineArray.length; i++) {
+
+                    if (colorLineArray[i].latlng[0].lat == previousValue.lat) {
+                        // console.log('value matched');
+                        colorLineArray[i].latlng[0].lat = newvalue.lat;
+                        if (colorLineArray[i].latlng[0].lng == previousValue.lng) {
+                            colorLineArray[i].latlng[0].lng = newvalue.lng;
+                        }
+
+                    }
+                    if (colorLineArray[i].latlng[1].lat == previousValue.lat) {
+                        // console.log('value matched');
+                        colorLineArray[i].latlng[1].lat = newvalue.lat;
+                        if (colorLineArray[i].latlng[1].lng == previousValue.lng) {
+                            colorLineArray[i].latlng[1].lng = newvalue.lng;
+
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+        function arrayPair() {
+
+            // console.log('markers length', markers.length, lengthMarker);
+            plotLineHavingNotSameLength();
+
+        }
+
+
+        function plotLineHavingNotSameLength() {
+            // var newpairArray =[];
+            var newpairArray = [];
+
+            if (markers.length > 0) {
+                for (var i = 0; i < markers.length; i++) {
+                    for (var j = 0; j < markers.length; j++) {
+                        if (i != j) {
+                            //    console.log('markersloop', markers[i], markers[j], 'i, j', i,j);
+                            newpairArray.push([markers[i], markers[j]]);
+
+                        }
+
+                    }
+                }
+
+            }
+            newpairArray.forEach(function (element, index) {
+                console.log('index elements', index, element);
+                var lineSymbol = {
+                    path: 'M 0,-1 0,1',
+                    strokeOpacity: 1,
+                    scale: 3
+                };
+
+                var polylinePath = new google.maps.Polyline({
+                    path: element,
+                    // editable: true,
+                    strokeOpacity: 0,
+                    icons: [{
+                        icon: lineSymbol,
+                        // offset: '0',
+                        repeat: '15px'
+                    }],
+                });
+
+                for (var j = 0; j < colorLineArray.length; j++) {
+                    console.log('index', index)
+                    //  console.log('element', element, colorLineArray[j]);
+                    if (element[0].lat == colorLineArray[j].latlng[0].lat && element[1].lat == colorLineArray[j].latlng[1].lat) {
+                        if (element[0].lng == colorLineArray[j].latlng[0].lng && element[1].lng == colorLineArray[j].latlng[1].lng) {
+
+                            console.log('element', element[0], colorLineArray[j].latlng, index);
+                            polylinePath.setOptions({
+                                strokeColor: '#003cff',
+                                geodesic: true,
+                                strokeOpacity: 1.0,
+                                strokeWeight: 2
+
+                            });
+                            colorLineArray[j].index = index;
+                            colorLineArray[j].latlng = element;
+                            console.log('colorlinearray', colorLineArray);
+                        }
+
+
+                    } else {
+                        if (colorLineArray[j].index == index) {
+                            polylinePath.setOptions({
+                                strokeColor: '#003cff',
+                                geodesic: true,
+                                strokeOpacity: 1.0,
+                                strokeWeight: 2
+
+                            });
+                            console.log('colorlineIndex', colorLineArray);
+                            colorLineArray[j].index = index;
+                            colorLineArray[j].latlng = element;
+
+
+                        }
+
+                    }
+
+                }
+
+                polylineMarker.push(polylinePath);
+                polylinePath.setMap(map);
+                google.maps.event.addListener(polylinePath, 'click', function () {
+                    let count = 0
+                    let colorIndex
+                    for (let i = 0; i < colorLineArray.length; i++) {
+                        if (colorLineArray[i].index == index) {
+                            count++
+                            colorIndex = i
+                        }
+                    }
+                    if (count == 0) {
+                        polylineLengthMarker = markers.length
+                        previousValueFunction(index, newpairArray[index], 'push')
+                        var lineSymbol = {
+                            path: 'M 0,-1 0,1',
+                            strokeOpacity: 1,
+                            scale: 4
+                        }
+                        polylinePath.setOptions({
+                            strokeColor: '#003cff',
+                            geodesic: true,
+
+                            strokeOpacity: 1.0,
+                            strokeWeight: 2
+                        })
+                    }
+                    if (count != 0) {
+                        var lineSymbol = {
+                            path: 'M 0,-1 0,1',
+                            strokeOpacity: 1,
+                            scale: 3
+                        };
+                        // removePolyline()
+                        polylinePath.setMap(null)
+                        colorLineArray.splice(colorIndex, 1)
+                        polylinePath.setOptions({
+                            strokeOpacity: 0,
+                            icons: [{
+                                icon: lineSymbol,
+                                // offset: '0',
+                                repeat: '15px'
+                            }],
+                        })
+                    }
+                    //    colorLineArrayFunction(index, newpairArray[index]);
+                    // previousValueFunction(index, newpairArray[index], 'push')
+
+
+
+                    // polylineLengthMarker = markers.length;
+
+                    // var lineSymbol = {
+                    //     path: 'M 0,-1 0,1',
+                    //     strokeOpacity: 1,
+                    //     scale: 4
+                    // };
+                    // polylinePath.setOptions({
+                    //     strokeColor: '#003cff',
+                    //     geodesic: true,
+
+                    //     strokeOpacity: 1.0,
+                    //     strokeWeight: 2
+
+                    // });
+
+                });
+
+            })
+
+
+        }
+        // function colorLineArrayFunction(ind, element){
+        //     console.log('..........color', ind, element);
+        //     if(colorLineArray.length>0){
+        //         for(var i=0; i<colorLineArray.length; i++){
+        //           //  console.log('color.....', colorLineArray[i].index);
+        //         if(colorLineArray[i].index==ind){
+        //             console.log('elementmatches', colorLineArray[i].latlng);
+        //             colorLineArray[i].index = ind
+        //             colorLineArray[i].latlng = element
+        //         }
+        //         else{
+        //             console.log('colorpush')
+        //             colorLineArray.push({
+        //                 "latlng": element,
+        //                 "index": ind
+
+        //             });
+        //             console.log('colorpush', colorLineArray);
+
+        //         }
+        //         }
+        //     }
+        //     else{
+
+        //             console.log('colorpush')
+        //             colorLineArray.push({
+        //                 "latlng": element,
+        //                 "index": ind
+
+        //             });
+        //             console.log('colorpush', colorLineArray);
+
+        //     }
+
+        // }
+        // function plotLine() {
+        //     var newpairArray = [];
+        //     if (markers.length > 0) {
+        //         for (var i = 0; i < markers.length; i++) {
+        //             for (var j = 0; j < markers.length; j++) {
+        //                 if (i != j) {
+        //                     newpairArray.push([markers[i], markers[j]]);
+
+        //                 }
+
+        //             }
+        //         }
+        //         console.log(newpairArray);
+        //     }
+        //     newpairArray.forEach(function (element, index) {
+        //         var lineSymbol = {
+        //             path: 'M 0,-1 0,1',
+        //             strokeOpacity: 1,
+        //             scale: 3
+        //         };
+
+        //         var polylinePath = new google.maps.Polyline({
+        //             path: element,
+        //             // editable: true,
+        //             strokeOpacity: 0,
+        //             icons: [{
+        //                 icon: lineSymbol,
+        //                 // offset: '0',
+        //                 repeat: '15px'
+        //             }],
+        //         });
+        //         for (var j = 0; j < colorLineArray.length; j++) {
+        //             if (index == colorLineArray[j].index) {
+        //                 polylinePath.setOptions({
+        //                     strokeColor: '#003cff',
+        //                     geodesic: true,
+
+        //                     strokeOpacity: 1.0,
+        //                     strokeWeight: 2
+
+        //                 });
+
+        //             }
+        //         }
+
+        //         polylineMarker.push(polylinePath);
+        //         polylinePath.setMap(map);
+        //         google.maps.event.addListener(polylinePath, 'click', function () {
+        //             // colorLineArray.push({
+        //             //     "latlng": newpairArray[index],
+        //             //     "index": index
+
+        //             // });
+        //             colorLineArrayFunction(index, newpairArray[index]);
+        //             polylineLengthMarker = markers.length;
+
+        //             var lineSymbol = {
+        //                 path: 'M 0,-1 0,1',
+        //                 strokeOpacity: 1,
+        //                 scale: 4
+        //             };
+        //             polylinePath.setOptions({
+        //                 strokeColor: '#003cff',
+        //                 geodesic: true,
+
+        //                 strokeOpacity: 1.0,
+        //                 strokeWeight: 2
+
+        //             });
+
+        //         });
+
+        //     })
+
+        //     console.log('markers3', lengthMarker, markers.length);
+
+        // }
+
+        function removeMarker() {
+            for (i = 0; i < globalMarker.length; i++) {
+                globalMarker[i].setMap(null);
+            }
+            return true
+        }
+        function removePolyline() {
+            for (i = 0; i < polylineMarker.length; i++) {
+                polylineMarker[i].setMap(null);
+            }
+            return true;
+
+        }
+        function removeElseMarker() {
+            for (i = 0; i < elseMarker.length; i++) {
+                elseMarker[i].setMap(null);
+            }
+            return true
+
+        }
+
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=API_KEY&callback=initMap&libraries=geometry,drawing">
+        </script>
+</body>
+
+</html>
