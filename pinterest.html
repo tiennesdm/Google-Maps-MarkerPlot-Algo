@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>pinterest</title>
+    <script async defer src="//assets.pinterest.com/js/pinit.js"></script>
+</head>
+
+<body>
+    <button onclick="myFunction()">Click me</button>
+    <script>
+        imgUrl = "http://fbrell.com/f8.jpg";
+        note = "This is for the testing purpose";
+        //    function myFunction(){
+        window.pAsyncInit = function () {
+            PDK.init({
+                appId: "###########", // Change this
+                cookie: true
+            });
+            /*PDK.login({scope:'write_public'},function(response){
+                console.log(response);
+            })*/
+            /*  PDK.login({scope:'write_public'},function(response){
+                  console.log(response);
+              })*/
+            /*PDK.getSession(function(response){
+                 console.log(response);
+             });*/
+            // 5061012437153660218
+            /********Creating Pins without callback********/
+            PDK.pin(this.imgUrl, this.note);
+
+
+            /**************************/
+            /*PDK.request('/v1/pins', {scope:'write_public', note:"hello", image_url:"http://fbrell.com/f8.jpg"}, function(response){
+                console.log(response);
+            })*/
+            /* PDK.me('pins', function(response){
+                 console.log(response)
+             })*/
+            //  PDK.request('/v1/boards',)
+        };
+
+        //    }
+
+
+        (function (d, s, id) {
+            var js, pjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) { return; }
+            js = d.createElement(s); js.id = id;
+            js.src = "//assets.pinterest.com/sdk/sdk.js";
+            pjs.parentNode.insertBefore(js, pjs);
+        }(document, 'script', 'pinterest-jssdk'));
+    </script>
+
+    <a target="_blank" data-pin-do="buttonBookmark" href="https://www.pinterest.com/pin/create/button/"></a>
+
+</body>
+
+</html>
